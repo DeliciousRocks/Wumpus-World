@@ -7,7 +7,7 @@ import java.util.*;
 
 //Coded by: Walter Squires
 
-public class WumpusWorld
+public class AutoWumpusWorld
 {
   public static void main(String[] args)
   {
@@ -42,7 +42,7 @@ class MyFrame extends JFrame
     int index = 0;
       for (int i = 0; i <used.size();i++)
       {
-        if (used.get(i).getType() == 1)
+        if (used.get(i).getType() == Coordinate.PLAYER)
           index = i;
       }
     AI.setCoord(used.get(index));
@@ -57,47 +57,16 @@ class MyFrame extends JFrame
     
     
     buttonPanel = new JPanel();
-    buttonPanel.setLayout( new GridLayout(3,3,0,0));
+    buttonPanel.setLayout( new GridLayout(1,1,0,0));
     ActionListener listener = new Choice();
     
-    upLeft = new JButton("UP-LEFT");
-    buttonPanel.add(upLeft);
-    
-    up = new JButton("UP");
-    up.addActionListener(listener);
-    buttonPanel.add(up);
-    
-    upRight = new JButton("UP-RIGHT");
-    buttonPanel.add(upRight);
-    
-    left = new JButton("LEFT");
-    left.addActionListener(listener);
-    buttonPanel.add(left); 
     
     middle = new JButton();
     middle.addActionListener(listener);
     buttonPanel.add(middle);
-    
-    right = new JButton("RIGHT");
-    right.addActionListener(listener);
-    buttonPanel.add(right);
-    
-    downLeft = new JButton("DOWN-LEFT");
-    buttonPanel.add(downLeft);
-    
-    down = new JButton("DOWN");
-    down.addActionListener(listener);
-    buttonPanel.add(down);
-    
-    downRight = new JButton("DOWN-RIGHT");
-    buttonPanel.add(downRight);
+
     
     contentPane.add(buttonPanel, "East");
-    
-    
-    
-    
-    
   }
   
   public static int getScore()
@@ -115,7 +84,7 @@ class MyFrame extends JFrame
       int index = 0;
       for (int i = 0; i <used.size();i++)
       {
-        if (used.get(i).getType() == 1)
+        if (used.get(i).getType() == Coordinate.PLAYER)
           index = i;
       }
       Coordinate player = used.get(index);
@@ -127,25 +96,17 @@ class MyFrame extends JFrame
       }
       if (!in)
         AI.addVisited(player.softCopy());
-      if(source == up)
-        player.n();
-      else if (source == down)
-        player.s();
-      else if (source == left)
-        player.w();
       else if (source == middle)
       {
-        AI.findMove(used);
+        player.goTo(AI.findMove(used));
       }
-      else if (source ==  right)
-        player.e();
       AI.setCoord(player);
       score--;
       for (int j = 0; j < used.size(); j++)
       {
-        if (player.sameSpot(used.get(j)) && ((used.get(j).getType() == 2 )|| (used.get(j).getType() == 3))) 
+        if (player.sameSpot(used.get(j)) && ((used.get(j).getType() == Coordinate.PIT )|| (used.get(j).getType() == Coordinate.WUMPUS))) 
           score = score -1000;
-        else if (player.sameSpot(used.get(j)) && (used.get(j).getType() == 5 ))
+        else if (player.sameSpot(used.get(j)) && (used.get(j).getType() == Coordinate.GOLD))
           score = score +1000;
         repaint();
       }
@@ -213,7 +174,7 @@ class MyFrame extends JFrame
         boolean atHazard = false;
         for (int i = 0; i < originalSize; i++)
         {
-          if (toBeAdded.sameSpot(used.get(i)) && ((used.get(i).getType() == 2 )|| (used.get(i).getType() == 3)))
+          if (toBeAdded.sameSpot(used.get(i)) && ((used.get(i).getType() == Coordinate.PIT )|| (used.get(i).getType() == Coordinate.WUMPUS)))
             atHazard = true;
         }
         if (!atHazard)
@@ -250,7 +211,7 @@ class MyFrame extends JFrame
       int index = 0;    
       for (int i = 0; i <used.size();i++)
       {
-        if (used.get(i).getType() == 1)
+        if (used.get(i).getType() == Coordinate.PLAYER)
           index = i; 
         safeZone.add(used.get(i));
       }
@@ -299,7 +260,7 @@ class MyFrame extends JFrame
       for (int u = 0; u < used.size(); u++)
       {
         Coordinate buffer = used.get(u);
-        if (buffer.getType() == 4)
+        if (buffer.getType() == Coordinate.BREEZE)
         {
           g2.setColor(Color.green);
           h = buffer.getY() * 50;
@@ -310,7 +271,7 @@ class MyFrame extends JFrame
             g2.fill(c);
           }
         }
-        else if (buffer.getType() == 6)
+        else if (buffer.getType() == Coordinate.STENCH)
         {
           g2.setColor(Color.orange);
           h = buffer.getY() * 50;
@@ -326,7 +287,7 @@ class MyFrame extends JFrame
       {
         Coordinate buffer = used.get(u);
         
-        if (buffer.getType() == 1)
+        if (buffer.getType() == Coordinate.PLAYER)
         {
           g2.setColor(Color.blue);
           h = buffer.getY() * 50;
@@ -334,7 +295,7 @@ class MyFrame extends JFrame
           Rectangle c = new Rectangle(h + 70,v + 70, 10, 10);
           g2.fill(c);
         }
-        else if (buffer.getType() == 2)
+        else if (buffer.getType() == Coordinate.PIT)
         {
           g2.setColor(Color.black);
           h = buffer.getY() * 50;
@@ -342,7 +303,7 @@ class MyFrame extends JFrame
           Rectangle c = new Rectangle(h + 70,v + 70, 10, 10);
           g2.fill(c);
         }
-        else if (buffer.getType() == 3)
+        else if (buffer.getType() == Coordinate.WUMPUS)
         {
           g2.setColor(Color.red);
           h = buffer.getY() * 50;
@@ -350,7 +311,7 @@ class MyFrame extends JFrame
           Rectangle c = new Rectangle(h + 70,v + 70, 10, 10);
           g2.fill(c);
         }
-        else if (buffer.getType() == 5)
+        else if (buffer.getType() == Coordinate.GOLD)
         {
           g2.setColor(Color.yellow);
           h = buffer.getY() * 50;

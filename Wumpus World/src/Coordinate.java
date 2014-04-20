@@ -2,6 +2,13 @@ import java.util.ArrayList;
 
 public class Coordinate implements Comparable<Coordinate>
 {
+  public static final int PLAYER = 1;
+  public static final int PIT = 2;
+  public static final int WUMPUS = 3;
+  public static final int GOLD = 5;
+  public static final int BREEZE = PIT * 2;
+  public static final int STENCH = WUMPUS * 2;
+
   private int x;
   private int y;
   private int type;
@@ -35,6 +42,12 @@ public class Coordinate implements Comparable<Coordinate>
   public Coordinate softCopy()
   { 
     return new Coordinate(this.x,this.y);
+  }
+  
+  public void goTo(Coordinate newCoord)
+  {
+    x = newCoord.getX();
+    y = newCoord.getY();
   }
   
   public int getX()
