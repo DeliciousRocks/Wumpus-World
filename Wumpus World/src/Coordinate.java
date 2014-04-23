@@ -2,6 +2,7 @@ import java.util.ArrayList;
 
 public class Coordinate implements Comparable<Coordinate>
 {
+  public static final int CLEAR = 0;
   public static final int PLAYER = 1;
   public static final int PIT = 2;
   public static final int WUMPUS = 3;

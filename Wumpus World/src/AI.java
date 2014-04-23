@@ -43,26 +43,26 @@ public class AI
       boolean breeze = false;
       boolean stench = false;
       boolean gold = false;
-      int type = 0;
+      int type = Coordinate.CLEAR;
       for(int n = 0; n < here.size(); n++)
       {
-        if (here.get(n).getType() == 4)
+        if (here.get(n).getType() == Coordinate.BREEZE)
         {
           breeze = true;
-          type = 2;
+          type = Coordinate.PIT;
         }
-        if (here.get(n).getType() == 6)
+        if (here.get(n).getType() == Coordinate.STENCH)
         {
           stench = true;
-          type = 3;
+          type = Coordinate.WUMPUS;
         }
-        if (here.get(n).getType() == 5)
+        if (here.get(n).getType() == Coordinate.GOLD)
         {
           gold = true;
-          type = 5;
+          type = Coordinate.GOLD;
         }
       
-        if (type ==5)
+        if (type == Coordinate.GOLD)
         {
           JOptionPane.showMessageDialog(null, "Congratulations!", "Success", JOptionPane.PLAIN_MESSAGE);
           break;
@@ -96,21 +96,17 @@ public class AI
         {
           Coordinate possibleHazard = moves.get(m);
           possibleHazards.add(possibleHazard);
-          possibleHazard.setType(2);
+          possibleHazard.setType(Coordinate.PIT);
           moves.set(m,possibleHazard);
         }
       }
-      else if  ((breeze || stench) && explored)
+      else if ((!breeze && !stench) && !explored)
       {
-        moves.get(m).setType(1);
+        moves.get(m).setType(Coordinate.CLEAR);
       }
-      else if ((!breeze && ! stench) && !explored)
+      else if  (explored)
       {
-        moves.get(m).setType(0);
-      }
-      else if ((!breeze && ! stench) && explored)
-      {
-        moves.get(m).setType(1);
+        moves.get(m).setType(Coordinate.PLAYER);
       }
     }
     
@@ -129,7 +125,8 @@ public class AI
        System.out.println("Possible Hazards : ("+possibleHazards.get(h).getY()+ ","+ possibleHazards.get(h).getX()+")");
     } 
     
-    return moves.get(0);
+    int index = 0;//(int)(Math.random() * moves.size());
+    return moves.get(index);
   }
 
         

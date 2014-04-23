@@ -42,8 +42,10 @@ class MyFrame extends JFrame
     int index = 0;
       for (int i = 0; i <used.size();i++)
       {
-        if (used.get(i).getType() == Coordinate.PLAYER)
+        if (used.get(i).getType() == Coordinate.PLAYER) {
           index = i;
+          break;
+        }
       }
     AI.setCoord(used.get(index));
     AI.findMove(used);
@@ -84,22 +86,27 @@ class MyFrame extends JFrame
       int index = 0;
       for (int i = 0; i <used.size();i++)
       {
-        if (used.get(i).getType() == Coordinate.PLAYER)
+        if (used.get(i).getType() == Coordinate.PLAYER) {
           index = i;
+          break;
+        }
       }
       Coordinate player = used.get(index);
       boolean in = false;
       for (int f = 0; f < AI.getVisited().size(); f++)
       {
-        if ( AI.getVisited().get(f).sameSpot(player))
+        if ( AI.getVisited().get(f).sameSpot(player)) {
           in = true;
+          break;
+        }
       }
+      
       if (!in)
         AI.addVisited(player.softCopy());
-      else if (source == middle)
-      {
+
+      if (source == middle)
         player.goTo(AI.findMove(used));
-      }
+
       AI.setCoord(player);
       score--;
       for (int j = 0; j < used.size(); j++)
