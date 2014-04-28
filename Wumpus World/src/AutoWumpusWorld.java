@@ -21,6 +21,7 @@ public class AutoWumpusWorld
 
 class MyFrame extends JFrame
 {
+  private Coordinate playerLocation;
   private ArrayList<Coordinate> used;
   private JPanel buttonPanel;
   private TextPanel scoreBoard; 
@@ -36,18 +37,10 @@ class MyFrame extends JFrame
     int columns = 4;                           // Sets the number of columns on the grid
     Coordinate.updateGrid(rows, columns);      // Lets the Coordinate class know what the size of the grid is
     used = new ArrayList();                    // Creates an array list to keep track of all used coordinat
-    setSize(1000, 600);                              // Sets the size of the frame
+    setSize(500, 500);                              // Sets the size of the frame
     map = new Grid(rows, columns, used);
     
-    int index = 0;
-      for (int i = 0; i <used.size();i++)
-      {
-        if (used.get(i).getType() == Coordinate.PLAYER) {
-          index = i;
-          break;
-        }
-      }
-    AI.setCoord(used.get(index));
+    AI.setCoord(playerLocation);
     AI.findMove(used);
                       
     directionals = new Controls();
@@ -61,7 +54,6 @@ class MyFrame extends JFrame
     buttonPanel = new JPanel();
     buttonPanel.setLayout( new GridLayout(1,1,0,0));
     ActionListener listener = new Choice();
-    
     
     middle = new JButton();
     middle.addActionListener(listener);
@@ -83,38 +75,30 @@ class MyFrame extends JFrame
     {
       Object source = event.getSource();
       
-      int index = 0;
-      for (int i = 0; i <used.size();i++)
-      {
-        if (used.get(i).getType() == Coordinate.PLAYER) {
-          index = i;
-          break;
-        }
+      if (source == middle) {
+        Coordinate nextMove = AI.findMove(used);
+        playerLocation.goTo(nextMove);
       }
-      Coordinate player = used.get(index);
-      boolean in = false;
-      for (int f = 0; f < AI.getVisited().size(); f++)
-      {
-        if ( AI.getVisited().get(f).sameSpot(player)) {
-          in = true;
-          break;
-        }
-      }
-      
-      if (!in)
-        AI.addVisited(player.softCopy());
 
-      if (source == middle)
-        player.goTo(AI.findMove(used));
+      // If there is something else at the same location of
+      // the player, we want the AI to know that. Set the
+      // coordinate to be the one in used. If it's empty,
+      // it won't be in used, and we'll give it the player
+      // location, which has nothing but an x and y value.
+      if (used.contains(playerLocation))
+        AI.setCoord(used.get(used.indexOf(playerLocation)));
+      else
+        AI.setCoord(playerLocation);
 
-      AI.setCoord(player);
       score--;
       for (int j = 0; j < used.size(); j++)
       {
-        if (player.sameSpot(used.get(j)) && ((used.get(j).getType() == Coordinate.PIT )|| (used.get(j).getType() == Coordinate.WUMPUS))) 
+        if (playerLocation.sameSpot(used.get(j)) && ((used.get(j).getType() == Coordinate.PIT )|| (used.get(j).getType() == Coordinate.WUMPUS))) {
           score = score -1000;
-        else if (player.sameSpot(used.get(j)) && (used.get(j).getType() == Coordinate.GOLD))
+        } else if (playerLocation.sameSpot(used.get(j)) && ((used.get(j).getType() & Coordinate.GOLD) > 0)) {
           score = score +1000;
+          JOptionPane.showMessageDialog(null, "Congratulations!", "Success", JOptionPane.PLAIN_MESSAGE);
+        }
         repaint();
       }
     }
@@ -135,25 +119,25 @@ class MyFrame extends JFrame
       rows = r;
       columns = c;     
       used = u;
-      selectedPointMaker(rows-1, 0, used,1);                              // Creates the starting point
+      playerLocation = new Coordinate(rows-1, 0);
       double holes =  ((rows*columns)*.125);                                        // Sets the number of holes to 1/8 of the area of the grid
       double wumpus = ((rows*columns)*.0625);                                       // Sets the number of wumpus to 1/16 of the area of the grid
-      
+
       for (int x = 0; x < holes;)                                                   // Loop that generates holes
       {
-        boolean done =randomPointMaker(rows,columns,used, 2);              // Creates holes
+        boolean done = randomPointMaker(rows,columns,used, Coordinate.PIT);              // Creates holes
         if (done) 
           x++;
       }
       for (int y = 0; y < wumpus;)                                                 // Loop that generates wumpus
       {
-        boolean done =randomPointMaker(rows,columns,used, 3);              // Creates wumpus
+        boolean done = randomPointMaker(rows,columns,used, Coordinate.WUMPUS);              // Creates wumpus
         if (done)
           y++;
       }
       for (int z = 0; z < 1;)                                                    // Loop that generates gold
       {
-        boolean done =randomPointMaker(rows,columns,used, 5);            // Creates the gold
+        boolean done = randomPointMaker(rows,columns,used, Coordinate.GOLD);            // Creates the gold
         if (done)
           z++;
       }
@@ -163,12 +147,12 @@ class MyFrame extends JFrame
     public void addWarnings(ArrayList<Coordinate> used)
     {
       int originalSize = used.size();
-      for (int i = 0;i < originalSize;i++)
+      for (int i = 0; i < originalSize; i++)
       {
         Coordinate temp = used.get(i);
         int type = temp.getType();
-        if (type==2 || type == 3)
-          generateWarnings(temp,type, originalSize, used);
+        if (((type & Coordinate.PIT) > 0) || ((type & Coordinate.WUMPUS) > 0))
+          generateWarnings(temp, type, originalSize, used);
       }
     }
     
@@ -181,69 +165,60 @@ class MyFrame extends JFrame
         boolean atHazard = false;
         for (int i = 0; i < originalSize; i++)
         {
-          if (toBeAdded.sameSpot(used.get(i)) && ((used.get(i).getType() == Coordinate.PIT )|| (used.get(i).getType() == Coordinate.WUMPUS)))
+          if (toBeAdded.sameSpot(used.get(i)) && (((used.get(i).getType() & Coordinate.PIT) > 0) || ((used.get(i).getType() & Coordinate.WUMPUS) > 0)))
             atHazard = true;
         }
         if (!atHazard)
         {
-          toBeAdded.setType(type*2);
-          used.add(buffer.get(j));
+          toBeAdded.setType(type/2);
+          if (used.contains(toBeAdded)) {
+            Coordinate usedCoord = used.get(used.indexOf(toBeAdded));
+            usedCoord.setType(usedCoord.getType() | toBeAdded.getType());
+          } else {
+            used.add(toBeAdded);
+          }
         }
       }
     }
     
     public boolean selectedPointMaker(int x, int y, ArrayList<Coordinate> used, int type)
     {
-      boolean flag = true;                           // Makes a variable to keep track of if the coordinate has been used
       Coordinate coord = new Coordinate(x,y,type);   // Creates a Coordinate that contains the given coordinates
-      for (int w = 0; w < used.size(); w++)          // Loop that checks if the newly generated point is in use
-      {
-        if (coord.equals(used.get(w)))               // If the point has been already found, change the flag
-          flag = false;
-      }
-      if (flag)                                      // If the point is not in the array/...
-      {
-        used.add(coord);                             // Add the point to array of used coordinates   
-        return true;
-      }
-      else
+      if (used.contains(coord))
         return false;
+      used.add(coord);                             // Add the point to array of used coordinates   
+      return true;
     }
     
-    public boolean randomPointMaker(int rows,int columns, ArrayList<Coordinate> used,int type)
+    public boolean randomPointMaker(int rows, int columns, ArrayList<Coordinate> used,int type)
     {
       Random generator = new Random();               // Creates random number generator
-      boolean flag = true;                           // Makes a variable to keep track of if the coordinate has been used
       ArrayList<Coordinate> safeZone = new ArrayList<Coordinate>();                // Creates an array of locations that cannot be used
-      int index = 0;    
-      for (int i = 0; i <used.size();i++)
-      {
-        if (used.get(i).getType() == Coordinate.PLAYER)
-          index = i; 
-        safeZone.add(used.get(i));
-      }
-      Coordinate player = used.get(index);           // Finds the players spawn point
-      ArrayList<Coordinate> surroundings = player.getSurroundings();  
-      for (int i = 0; i <surroundings.size();i++)
-      { 
-        safeZone.add(surroundings.get(i));
-      }
+
+      // Don't allow hazards to be added at the same spot
+      // as the player spawns.
+      safeZone.add(playerLocation);
+
+      // Add all coordinates in used to safe zone so
+      // that we don't overwrite existing coordaintes.
+      for (Coordinate coord : used)
+        safeZone.add(coord);
+
+      // Don't allow hazards to be added to the player's immediate
+      // surroudings.
+      ArrayList<Coordinate> surroundings = playerLocation.getSurroundings();
+      for (Coordinate coord : surroundings)
+        safeZone.add(coord);
       
       int a = generator.nextInt(rows);               // Generates the x coordinate
       int b = generator.nextInt(columns);            // Generates the y coordinate
       Coordinate coord = new Coordinate(a,b,type);   // Creates a Coordinate that contains the generated coordinates
-      for (int w = 0; w < safeZone.size(); w++)      // Loop that checks if the newly generated point is allowed to be used
-      {
-        if (coord.sameSpot(safeZone.get(w)))            // If the point has been already found, change the flag
-          flag = false;
-      }
-      if (flag)                                      // If the point is not in the array/...
-      {
-        used.add(coord);                             // Add the point to the array of used coordinates
-        return true;   
-      }
-      else
+
+      if (safeZone.contains(coord))
         return false;
+
+      used.add(coord);
+      return true;
     }
     
     
@@ -267,7 +242,7 @@ class MyFrame extends JFrame
       for (int u = 0; u < used.size(); u++)
       {
         Coordinate buffer = used.get(u);
-        if (buffer.getType() == Coordinate.BREEZE)
+        if ((buffer.getType() & Coordinate.BREEZE) > 0)
         {
           g2.setColor(Color.green);
           h = buffer.getY() * 50;
@@ -278,7 +253,7 @@ class MyFrame extends JFrame
             g2.fill(c);
           }
         }
-        else if (buffer.getType() == Coordinate.STENCH)
+        if ((buffer.getType() & Coordinate.STENCH) > 0)
         {
           g2.setColor(Color.orange);
           h = buffer.getY() * 50;
@@ -290,19 +265,12 @@ class MyFrame extends JFrame
           }
         }
       }
+
       for (int u = 0; u < used.size(); u++)
       {
         Coordinate buffer = used.get(u);
         
-        if (buffer.getType() == Coordinate.PLAYER)
-        {
-          g2.setColor(Color.blue);
-          h = buffer.getY() * 50;
-          v = buffer.getX() * 50;
-          Rectangle c = new Rectangle(h + 70,v + 70, 10, 10);
-          g2.fill(c);
-        }
-        else if (buffer.getType() == Coordinate.PIT)
+        if ((buffer.getType() & Coordinate.PIT) > 0)
         {
           g2.setColor(Color.black);
           h = buffer.getY() * 50;
@@ -310,7 +278,7 @@ class MyFrame extends JFrame
           Rectangle c = new Rectangle(h + 70,v + 70, 10, 10);
           g2.fill(c);
         }
-        else if (buffer.getType() == Coordinate.WUMPUS)
+        else if ((buffer.getType() & Coordinate.WUMPUS) > 0)
         {
           g2.setColor(Color.red);
           h = buffer.getY() * 50;
@@ -318,7 +286,7 @@ class MyFrame extends JFrame
           Rectangle c = new Rectangle(h + 70,v + 70, 10, 10);
           g2.fill(c);
         }
-        else if (buffer.getType() == Coordinate.GOLD)
+        else if ((buffer.getType() & Coordinate.GOLD) > 0)
         {
           g2.setColor(Color.yellow);
           h = buffer.getY() * 50;
@@ -327,6 +295,15 @@ class MyFrame extends JFrame
           g2.fill(c);
         }
       }
+
+      // Draw the player on the board.
+      g2.setColor(Color.blue);
+      h = playerLocation.getY() * 50;
+      v = playerLocation.getX() * 50;
+      Rectangle c = new Rectangle(h + 70,v + 70, 10, 10);
+      g2.fill(c);
+
+
     }
   }
   

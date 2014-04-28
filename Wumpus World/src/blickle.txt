@@ -110,7 +110,6 @@ public class AI
       }
     }
     
-    selectionSort(moves);
     System.out.println();
     for (int i = 0; i < moves.size(); i ++)
     {
@@ -124,9 +123,65 @@ public class AI
     {
        System.out.println("Possible Hazards : ("+possibleHazards.get(h).getY()+ ","+ possibleHazards.get(h).getX()+")");
     } 
+
+
+    // Good moves in this case are the ones that are known to be clear
+    // and have not been visisted.
+    ArrayList<Coordinate> goodMoves = new ArrayList<Coordinate>();
+    ArrayList<Coordinate> visitedMoves = new ArrayList<Coordinate>();
+    ArrayList<Coordinate> possibleHazardMoves = new ArrayList<Coordinate>();
+    for (Coordinate move : moves) {
+        boolean isVisited = false;
+        for (Coordinate visitedMove : visited) {
+          if (move.sameSpot(visitedMove)) {
+            isVisited = true;
+            visitedMoves.add(move);
+          }
+        }
+        if (!isVisited && (move.getType() == Coordinate.CLEAR))
+          goodMoves.add(move);
+        else if (!isVisited)
+          possibleHazardMoves.add(move);
+    }
     
+    //System.out.println("\n\nGood moves: " + goodMoves.size());
+    //System.out.println("Good moves: " + goodMoves + "\n\n");
+
+    // Go to a random good move if there are any.
+    if (goodMoves.size() > 0) {
+      System.out.println("Good move");
+      int randIndex = (int)(Math.random() * goodMoves.size());
+      return goodMoves.get(randIndex);
+    }
+
+    int numPossibleMoves = moves.size();
+    int numVisitedMoves = visitedMoves.size();
+    int numPossibleHazardMoves = possibleHazardMoves.size();
+    double probabilityOfHazard = numPossibleHazardMoves / (double)numPossibleMoves;
+
+    double randomNum = Math.random() * 0.75;
+    System.out.println("prob of hazard: " + probabilityOfHazard);
+    System.out.println("random num: " + randomNum);
+
+    System.out.println("num poss haz: " + possibleHazardMoves.size());
+
+    if ((numPossibleHazardMoves == 0) || (randomNum <= probabilityOfHazard)) {
+      System.out.println("Visited move");
+      int randIndex = (int)(Math.random() * visitedMoves.size());
+      return visitedMoves.get(randIndex);
+    }
+
+    System.out.println("Poss haz move");
+    int randIndex = (int)(Math.random() * possibleHazardMoves.size());
+    return possibleHazardMoves.get(randIndex);
+
+/*
+    selectionSort(moves);
+
+    //System.out.println("sorted moves: " + moves);
+
     int index = 0;//(int)(Math.random() * moves.size());
-    return moves.get(index);
+    return moves.get(index);*/
   }
 
         

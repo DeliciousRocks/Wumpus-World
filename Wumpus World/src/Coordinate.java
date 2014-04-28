@@ -2,13 +2,12 @@ import java.util.ArrayList;
 
 public class Coordinate implements Comparable<Coordinate>
 {
-  public static final int CLEAR = 0;
-  public static final int PLAYER = 1;
-  public static final int PIT = 2;
-  public static final int WUMPUS = 3;
-  public static final int GOLD = 5;
-  public static final int BREEZE = PIT * 2;
-  public static final int STENCH = WUMPUS * 2;
+  public static final int CLEAR = 1;
+  public static final int BREEZE = 2;
+  public static final int PIT = BREEZE * 2;
+  public static final int STENCH = 8;
+  public static final int WUMPUS = STENCH * 2;
+  public static final int GOLD = 32;
 
   private int x;
   private int y;
@@ -37,6 +36,14 @@ public class Coordinate implements Comparable<Coordinate>
     y=b;
     type=c;
     threat= 0;
+  }
+
+  public Coordinate(Coordinate other)
+  {
+    x = other.x;
+    y = other.y;
+    type = other.type;
+    threat = other.threat;
   }
   
   //Technially, this is the first consructor
@@ -175,9 +182,9 @@ public class Coordinate implements Comparable<Coordinate>
       throw new NullPointerException();
       int firstCheck = (this.getType()) - (otherCoordinate.getType());
       if (firstCheck == 0)
-        return (this.y)- (otherCoordinate.y);
+        return (this.y - otherCoordinate.y);
       else
-        return firstCheck;   
+        return firstCheck;
   }
   
   
@@ -190,8 +197,12 @@ public class Coordinate implements Comparable<Coordinate>
     if( !(other instanceof Coordinate) )
       return false;
     Coordinate otherCoordinate = (Coordinate)other;
-    return (this.getX() == otherCoordinate.getX() && this.getY() == otherCoordinate.getY() && this.getType() == otherCoordinate.getType());
+    return ((x == otherCoordinate.x) && (y == otherCoordinate.y));// && this.getType() == otherCoordinate.getType());
     
+  }  
+
+  public String toString()
+  {
+    return "(" + y + "," + x + ") : " + type;
   }
-  
 }
