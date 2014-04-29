@@ -138,7 +138,7 @@ public class AI
     System.out.println("***********************************\n\n");
 
     ArrayList<Coordinate> moves = location.getSurroundings();
-   
+
     // If there are still known clear spaces we haven't
     // visited, we're not taking risks.
     if (!priorityMoves.isEmpty()) {
@@ -147,18 +147,8 @@ public class AI
         if (priorityMoves.contains(m))
           return m;
       }
-      // If not, pick a the shortest distance adjacent visited position.
-      int lIndex = 0;
-      int bestDis = priorityMoves.get(0).distance(moves.get(lIndex));
-      for (int n = 1; n < moves.size();n++)
-      {
-        if ((priorityMoves.get(0).distance(moves.get(n)) < bestDis) && visited.contains(moves.get(n)))
-        {
-          lIndex = n;
-          bestDis = priorityMoves.get(0).distance(moves.get(n));
-        }
-      }
-      return moves.get(lIndex);
+      // If not, pick a random adjacent visited position.
+      return getRandomVisitedCoordinateFromCoordinates(moves);
     } else {
       // If there are no known clear spaces, we'll have to take a risk, but we
       // want it to be as small as possible. Find the coordinates with the lowest
@@ -169,17 +159,7 @@ public class AI
         if (minThreatCoords.contains(m))
           return m;
       }
-      int lIndex = 0;
-      int bestDis = minThreatCoords.get(0).distance(moves.get(lIndex));
-      for (int n = 1; n < moves.size();n++)
-      {
-        if ((minThreatCoords.get(0).distance(moves.get(n)) < bestDis) && visited.contains(moves.get(n)))
-        {
-          lIndex = n;
-          bestDis = minThreatCoords.get(0).distance(moves.get(n));
-        }
-      }
-      return moves.get(lIndex);
+      return getRandomVisitedCoordinateFromCoordinates(moves);
     }
   }
    

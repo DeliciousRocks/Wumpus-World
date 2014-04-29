@@ -37,7 +37,7 @@ class MyFrame extends JFrame
     int columns = 4;                           // Sets the number of columns on the grid
     Coordinate.updateGrid(rows, columns);      // Lets the Coordinate class know what the size of the grid is
     used = new ArrayList();                    // Creates an array list to keep track of all used coordinat
-    setSize(400, 400);                              // Sets the size of the frame
+    setSize(500, 500);                              // Sets the size of the frame
     map = new Grid(rows, columns, used);
     
     AI.setCoord(playerLocation);

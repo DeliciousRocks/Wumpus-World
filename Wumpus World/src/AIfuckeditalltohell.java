@@ -4,14 +4,24 @@ import java.util.TreeMap;
 import java.util.Stack;
 import javax.swing.*;
 
-public class AI 
+public class AIfuckeditalltohell 
 {
+  private static ArrayList<Coordinate> unexplored = new ArrayList<Coordinate>();
   private static ArrayList<Coordinate> priorityMoves = new ArrayList<Coordinate>();
   private static ArrayList<Coordinate> visited = new ArrayList<Coordinate>();
   private static ArrayList<Coordinate> possibleHazards = new ArrayList<Coordinate>();
   private static ArrayList<Coordinate> hazards = new ArrayList<Coordinate>();
   private static Coordinate location;
 
+  public static void generateFog(int a, int b)
+  {
+    for (int s = 0; s <= a; s++)
+    {
+      for (int t = 0; t <=b; t++)
+        unexplored.add(new Coordinate(s,t));
+    }
+  }
+  
   public static void setCoord(Coordinate x) 
   {
     location = x;
@@ -25,7 +35,8 @@ public class AI
     // used, and potential hazards, so remove make sure
     // it is not in any of those lists. Add to hazard
     // list so we don't add it to visited later.
-    if (isHazardAtCoordinate(newCoord)) {
+    if (isHazardAtCoordinate(newCoord)) 
+    {
       hazards.add(newCoord);
       possibleHazards.remove(newCoord);
       return;
@@ -46,13 +57,18 @@ public class AI
           // hazard. (If it's not in there, this line will do nothing).
           possibleHazards.remove(m);
         }
-      } else {
-        for (Coordinate m : moves) {
-          if (!priorityMoves.contains(m) && !visited.contains(m)) {
-            if (possibleHazards.contains(m)) {
+      } else 
+      {
+        for (Coordinate m : moves) 
+        {
+          if (!priorityMoves.contains(m) && !visited.contains(m)) 
+          {
+            if (possibleHazards.contains(m))
+            {
               Coordinate coord = possibleHazards.get(possibleHazards.indexOf(m));
               coord.setThreat(coord.getThreat() + 1);
-            } else {
+            } else
+            {
               Coordinate coord = new Coordinate(m);
               m.setThreat(1);
               possibleHazards.add(m);
@@ -138,28 +154,44 @@ public class AI
     System.out.println("***********************************\n\n");
 
     ArrayList<Coordinate> moves = location.getSurroundings();
-   
+    for (Coordinate bad : moves)
+    {
+      for (Coordinate reallyBad : hazards)
+      {
+        if (bad.sameSpot(reallyBad))
+          moves.remove(bad);
+      }
+    }
+    
+    boolean noSafe= false;
+    for (Coordinate check :moves)
+    {
+      for(Coordinate doubleCheck : possibleHazards)
+      {
+        if (check.sameSpot(doubleCheck))
+          noSafe= true;
+      }   
+    }
+
     // If there are still known clear spaces we haven't
     // visited, we're not taking risks.
-    if (!priorityMoves.isEmpty()) {
-      // If a priority spot is adjacent to us, go there.
-      for (Coordinate m : moves) {
-        if (priorityMoves.contains(m))
-          return m;
-      }
-      // If not, pick a the shortest distance adjacent visited position.
+    if (!priorityMoves.isEmpty())// && noSafe)
+    {
+      // Go to the closest space to a priority space
       int lIndex = 0;
-      int bestDis = priorityMoves.get(0).distance(moves.get(lIndex));
+      double bestDis = priorityMoves.get(0).distance(moves.get(lIndex));
       for (int n = 1; n < moves.size();n++)
       {
-        if ((priorityMoves.get(0).distance(moves.get(n)) < bestDis) && visited.contains(moves.get(n)))
+        if (priorityMoves.get(0).distance(moves.get(n)) < bestDis)
         {
           lIndex = n;
           bestDis = priorityMoves.get(0).distance(moves.get(n));
         }
       }
       return moves.get(lIndex);
-    } else {
+    } 
+    else 
+    {
       // If there are no known clear spaces, we'll have to take a risk, but we
       // want it to be as small as possible. Find the coordinates with the lowest
       // threat level. If we're adjacent, go there. Otherwise, take a random
@@ -167,19 +199,31 @@ public class AI
       ArrayList<Coordinate> minThreatCoords = getCoordinatesWithLowestThreat();
       for (Coordinate m : moves) {
         if (minThreatCoords.contains(m))
-          return m;
-      }
-      int lIndex = 0;
-      int bestDis = minThreatCoords.get(0).distance(moves.get(lIndex));
-      for (int n = 1; n < moves.size();n++)
-      {
-        if ((minThreatCoords.get(0).distance(moves.get(n)) < bestDis) && visited.contains(moves.get(n)))
         {
-          lIndex = n;
-          bestDis = minThreatCoords.get(0).distance(moves.get(n));
+          return m;
         }
       }
-      return moves.get(lIndex);
+      Coordinate newCoord = new Coordinate(location);
+      boolean worked =newCoord.n();
+      if(worked)
+        return newCoord;
+      else
+      {
+        worked = newCoord.e();
+        if (worked)
+          return newCoord;
+        else
+        {
+          worked = newCoord.s();
+          if (worked)
+            return newCoord;
+          else
+          {
+            newCoord.w();
+            return newCoord;
+          }
+        }
+      }
     }
   }
    

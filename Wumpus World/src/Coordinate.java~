@@ -200,12 +200,6 @@ public class Coordinate implements Comparable<Coordinate>
     return ((x == otherCoordinate.x) && (y == otherCoordinate.y));// && this.getType() == otherCoordinate.getType());
     
   }  
-  
-  public int distance(Coordinate compare)
-  {
-    int dis = Math.abs(this.x -compare.x) + (Math.abs(this.y -compare.y));
-    return dis;
-  }
 
   public String toString()
   {
